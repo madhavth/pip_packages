@@ -85,6 +85,11 @@ done
 file=${arguments[0]}
 #nano $file
 
+if [[ -z $file ]]; then
+	echo "please provide a file name for the script"
+	exit 1
+fi
+
 if [[ $piped == "1" ]]; then
   cat ~/scripts/bin/pipescript.txt >> $file
 elif [[ $simple == "0" ]]; then
