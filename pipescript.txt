@@ -1,0 +1,15 @@
+#!/bin/bash
+
+piped=$([ -t 0 ] && echo "0" || echo "1" )
+
+if [[ $piped == "1" ]]; then
+while read var; do
+echo "piped output is $var"
+done
+
+echo "do i ever reach here"
+fi
+
+
+echo "not piped"
+

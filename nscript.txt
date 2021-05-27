@@ -1,0 +1,62 @@
+#!/bin/bash
+
+set -e
+
+PROGNAME=$0
+
+die() {
+    echo "$PROGNAME: $*" >&2
+    exit 1
+}
+
+echop() {
+    echo "${@}" >&2
+}
+
+
+usage() {
+    if [ "$*" != "" ] ; then
+        echo "Error: $*"
+    fi
+
+    cat << EOF
+Usage: $PROGNAME -t 123
+Custom Script usage title here
+Options:
+-h, --help                 display this usage message and exit
+EOF
+    exit 1
+}
+
+check_if_flag_args()
+{
+  if [[ $2 == "-"* ]]; then
+    usage "Not a valid argument for $1"
+  fi
+}
+
+title=""
+REM_ARGS=()
+
+while [ $# -gt 0 ] ; do
+    case "$1" in
+    -h|--help)
+        usage
+        ;;
+
+    -t|--title)
+        check_if_flag_args $1 $2
+        title="$2"
+        shift
+        ;;
+    -*)
+        usage "Unknown option '$1'"
+        ;;
+    *)
+        REM_ARGS+=" $1"
+      ;;
+    esac
+    shift
+done
+
+echop "REM_ARGS are ${REM_ARGS[@]}"
