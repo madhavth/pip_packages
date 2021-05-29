@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 set -e
 home=~
 pipe_script="$home/scripts/bin/pipescript.txt"
