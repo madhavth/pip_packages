@@ -2,25 +2,24 @@
 
 set -e
 
-version="1.0.6.1"
+version="1.3"
 PROGNAME=$0
 
 die() {
-    echo "$PROGNAME: $*" >&2
-    exit 1
+  echo "$PROGNAME: $*" >&2
+  exit 1
 }
 
 echop() {
-    echo "${@}" >&2
+  echo "${@}" >&2
 }
 
-
 usage() {
-    if [ "$*" != "" ] ; then
-        echo "Error: $*"
-    fi
+  if [ "$*" != "" ]; then
+    echo "Error: $*"
+  fi
 
-    cat << EOF
+  cat <<EOF
 Usage: $PROGNAME -f SHELL_SCRIPT -d DESCRIPTION_TO_SHOW_ON_PY_PI
 Madhavth shell script package creator for pyPi
 Options:
@@ -30,8 +29,10 @@ Options:
 -d, --description 		  description for package
 -f, --full              creates a package under pip_packages and creates setup as well as build
 -v, --version         version
+-a, --author          author name for package/ default is madhavth :D
+-i, --increase 		 increase version number
 EOF
-    exit 1
+  exit 1
 }
 
 setup=0
@@ -39,12 +40,44 @@ upload=0
 desc=""
 full=1
 
-check_if_flag_args()
-{
+check_if_flag_args() {
   if [[ $2 == "-"* ]]; then
     usage "Not a valid argument for $1"
   fi
 }
+
+function update_version() {
+  file=$1
+
+  if [[ -z $file ]]; then
+    echo "give a file to update version number"
+    exit 1
+  fi
+
+  old=$(cat $file | grep -Eo -m 1 'version="(.*)"$')
+
+  if [[ -z $old ]]; then
+    echo "file must contain a version variable set as version=\"VERSION_NUMBER\>"
+    echo "adding default version=0.0"
+    awk 'NR==1{print; print "version=\"0.0\"} NR!=1' >$file.temp.shellpackager
+    rm $file
+    mv $file.temp.shellpackager $file
+    version="0.0"
+  else
+    eval $old
+  fi
+
+  new_version=$(awk "BEGIN {print $version + 0.1}")
+
+  sed "0,/$old/s//version=\"$new_version\"/" $file > ${file}.temp.shellpackager
+
+rm $file
+
+mv ${file}.temp.shellpackager $file
+chmod a+x $file
+echo "updated version from $version to $new_version"
+}
+
 
 REM_ARGS=()
 
@@ -54,6 +87,13 @@ while [ $# -gt 0 ] ; do
       echo "version is $version"
       exit 0
       ;;
+
+
+	 -i|--increase)
+		check_if_flag_args $1 $2
+		update_version $2
+		exit 0
+		;;
 
 
     -h|--help)
@@ -66,6 +106,11 @@ while [ $# -gt 0 ] ; do
         shift
         ;;
 
+    -a|--author)
+      check_if_flag_args $1 $2
+      author="$2"
+      shift
+      ;;
 
 	-s|--setup)
 		setup=1
@@ -92,7 +137,6 @@ while [ $# -gt 0 ] ; do
     shift
 done
 
-#echop "REM_ARGS are ${REM_ARGS[@]}"
 package=${REM_ARGS[0]}
 package="$(echo ${package//[[:blank:]]/})"
 
@@ -115,52 +159,73 @@ function create_setup()
 package=$1
 description=$2
 
-echo -e "\
+cat <<EOT> README.md
+  just a simple project
+EOT
+
+
+cat <<EOT> setup.py
 #setup.py
 from setuptools import setup
+import re
+
+#change version number in $package file  add/edit version="DESIRED_VERSION NUMBER" at the top of file
+
+with open("README.md", "rb") as f:
+    long_descr = f.read().decode("utf-8")
+
+version_read = re.search(
+    '^version\s*=\s*"(.*)"',
+    open('$package').read(),
+    re.M
+)
+
+if version_read is not None:
+    version = version_read.group(1)
+else:
+    version = "0.1"
+
 
 setup(
     name='$1',
     scripts=['$1'],
-    version= '0.1',
+    version= "0.1",
     description = '${description:-"simple project, simple life"}',
     long_description = 'just a humble project',
-    author = 'madhavth'
+    author = '${author:-madhavth}'
 )
-" > setup.py
+EOT
 
-# echo -e "\
-# metadata]
-# name = $package
-# version = 0.1
-# author = madhavth
-# description = A small example package
-# long_description = file: README.md
-# long_description_content_type = text/markdown
-# " > setup.cfg
-
-
-echo -e "\
-  just a simple project
-" > README.md
+# echo -e "
+  # metadata]
+  # name = $package
+  # version = 0.1
+  # author = madhavth
+  # description = A small example package
+  # long_description = file: README.md
+  # long_description_content_type = text/markdown
+  # " > setup.cfg
 
 }
 
+function twine_up() {
+  file=$1
+  dont=$2
 
-function twine_up()
-{
+  if [[ $(ls dist/$file-${version}.tar.gz) ]]; then
+    if [[ -z $dont ]]; then
+      update_version $file
+    fi
+  fi
 
-file=$1
-dont=$2
+  rm -rf dist
 
-rm -rf dist
+  python3 setup.py bdist_wheel | grep $file
+  python3 setup.py sdist | grep $file
 
-python3 setup.py bdist_wheel | grep $file
-python3 setup.py sdist | grep $file
-
-if [[ -z $dont ]]; then
-twine upload dist/* --verbose
-fi
+  if [[ -z $dont ]]; then
+    twine upload dist/* --verbose
+  fi
 }
 
 home=~
@@ -186,7 +251,6 @@ if [[ "$full" == "1" ]]; then
   echo ""
   $SHELL
 fi
-
 
 if [[ "$setup" == "1" ]]; then
   create_setup $package $desc
