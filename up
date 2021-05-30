@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e 
+
+echo "uploading $1...."
+file="$1"
+uploading=""
+is_folder=0
+
+if test -f "$file"; then
+	echo ""
+	uploading="$file"
+elif test -d "$file"; then
+	echo "compressing folder.."
+	tar -zcvf "$file.gz" "$file"
+	uploading="$file.gz"
+	is_folder=1
+else
+	echo "file /folder doesnt exists"
+	exit 1
+fi
+
+link=$(curl --progress-bar --upload-file "$uploading" "https://transfer.sh/$uploading")
+
+#get download link instead of web page 
+down_link=$(echo ${link//"https://transfer.sh/"/"https://transfer.sh/get/"})
+
+echo "uploaded $down_link and copied to clipboard"
+
+rm -rf "$uploading"
+
+cb $down_link
