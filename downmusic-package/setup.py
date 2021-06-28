@@ -23,6 +23,7 @@ setup(
     name='downmusic',
     scripts=['downmusic'],
     version= version,
+    install_requires= ["youtube-dl"],
     description = 'simple project, simple life',
     long_description = long_descr,
     author = 'madhavth'

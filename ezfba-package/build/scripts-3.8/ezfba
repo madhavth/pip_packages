@@ -2,8 +2,8 @@
 
 set -e
 
-version="2.1"
-
+version="2.2"
+task="assembleDebug"
 upload=0
 message=0
 skip_build=0
@@ -13,6 +13,7 @@ changes=""
 username=""
 native="0"
 webhook_url=""
+direc=""
 
 function usage()
 {
@@ -26,6 +27,8 @@ function usage()
   echo "-s ===== skips building flutter apk"
   echo "-g ===== open build directory"
   echo "-n|--native ==== native android app"
+  echo "-rl === native release apk (defaults to debug build)"
+  echo "--apk-path ==== set apk path"
   echo ""
   echo ""
   echo "slack commands:-"
@@ -50,6 +53,15 @@ while [[ $# -gt 0 ]]; do
 			-u)
 				upload=1
 			;;
+
+      -rl)
+        task="assembleRelease"
+        ;;
+
+        --apk-path)
+          direc="$2"
+          shift
+          ;;
 
       -wh)
         webhook_url="$2"
@@ -153,25 +165,40 @@ if [[ "$skip_build" == "0" ]]; then
   flutter build apk --release
 	else
     echo "building native app"
-	./gradlew assembleRelease
+	./gradlew $task
 	fi
 else
 	echo "skipping build apk part"
 fi
 
+function setDirecPathIfEmpty()
+{
+  if [[ -z "$direc" ]]; then
+    direc="$1"
+  fi
+}
+
 
 if [[ "$native" == "1" ]]; then
-	direc="app/build/outputs/apk/release"
-apk_path="app/build/outputs/apk/release/"
+  if [[ "$task" == "assembleDebug" ]]; then
+    setDirecPathIfEmpty "app/build/outputs/apk/debug"
+  else
+    setDirecPathIfEmpty "app/build/outputs/apk/release"
+  fi
+
+apk_path=""
 release=0
 
-if [[ -f "$direc/app-release.apk" ]]; then
+if [[ "$task" == "assembleDebug" && -f "$direc/app-debug.apk" ]]; then
+  apk_path="$direc/app-debug.apk"
+elif [[ -f "$direc/app-release.apk" ]]; then
   release=1
-  apk_path+="app-release.apk"
+  apk_path="$direc/app-release.apk"
 elif [[ -f "$direc/app-release-unsigned.apk" ]]; then
-  apk_path+="app-release-unsigned.apk"
+  apk_path="$direc/app-release-unsigned.apk"
 else
   echo "no generated file found .. exiting"
+  echo "set apk path by using --apk-path command"
   exit 1
 fi
 fi

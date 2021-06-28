@@ -1,13 +1,14 @@
 #!/bin/bash
 #echo What is the artist of the song?
 #read ARTIST
-version="0.3"
+version="0.6"
 
-set -e 
+set -e
 
 song_name=$@
-directory="/home/madhavth/Downloads/Songs"
-mp3=$(ls $directory -Art | tail -n 1)
+home=~
+directory="$home/Downloads/Songs"
+mp3="$(ls -tu $directory | head -n1)"
 lds="$directory/$mp3"
 
 # Color
@@ -52,7 +53,8 @@ echo "##################################"
 mkdir -p $directory && cd $directory
 youtube-dl -x --audio-format mp3 "ytsearch:$NAME album version"
 #mp3=$(ls $directory -Art | tail -n 1)
-mp3=$(find . -type f -exec ls -t \{\} \+ | tail -1)
+mp3="$(ls -tu . | head -n1)"
+#mp3=$(find . -type f -exec ls -t \{\} \+ | tail -1)
 lds="$directory/$mp3"
 echo Your song has been downloaded successfully
 echo "saved as $mp3"
@@ -65,7 +67,7 @@ fi
 
 while [[ true ]]; do
 	clear
-	mp3=$(ls $directory -t1 |  head -n 1)
+	mp3=$(ls $directory -tu1 |  head -n 1)
 	lds="$directory/$mp3"
 	echo "$(green "Madhavth SONG DOWNLOADER ====")"
 	echo "1. Download song"
@@ -88,7 +90,7 @@ while [[ true ]]; do
 
 	echo ""
 	echo "choose an option or type the name of song"
-	echo ""	
+	echo ""
 
 	read choice
 
