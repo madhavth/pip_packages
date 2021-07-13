@@ -2,7 +2,7 @@
 
 set -e
 
-version="0.3"
+version="0.4"
 
 #linux=0
 #windows=0
@@ -35,6 +35,11 @@ function advl_get()
 
   devices=(${output/"List of devices attached"/""})
 
+  if [[ -z $devices ]]; then
+    echo "-itsover9000wtf"
+    exit 1
+  fi
+
   devicesLength=${#devices[@]}
 
   final=()
@@ -57,11 +62,6 @@ function adb_device_select()
   first=0
   devices=($(advl_get))
 
-  if [[ -z $devices ]]; then
-    echo "no device found... connect a device"
-  	exit 1
-  fi
-
   my_device_count=${#devices[@]}
 
   if [[ "$my_device_count" == "1" ]]; then
@@ -79,6 +79,11 @@ fi
 }
 
 selected_device=$(adb_device_select)
+
+if [[ $selected_device == "-itsover9000wtf" ]]; then
+  echo "No device connected. Connect a device to forward IP"
+  exit 1
+fi
 
 wifi_device_selected=0
 
