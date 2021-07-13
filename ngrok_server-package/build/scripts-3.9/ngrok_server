@@ -2,30 +2,97 @@
 
 set -e
 
-version="0.4"
+version="1"
 
-#linux=0
-#windows=0
+linux=0
+windows=0
+macos=0
 
 device=$(uname)
 
 if [[ "$device" == "Linux" ]]; then
     #echo "linux detected"
     linux=1
+elif [[ "$device" == "Darwin"  ]]; then
+    macos=1
 else
-    echo "unknown device"
+    windows=1
 fi
 
-if [[ ! $(which adb) ]]; then
-    echo "adb not found... try again after installing adb"
-    exit 1
+adb_path=""
+
+adb_darwin="https://github.com/madhavth/pip_packages/raw/master/adb_darwin"
+adb_windows="https://github.com/madhavth/pip_packages/raw/master/adb.exe"
+adb_linux="https://github.com/madhavth/pip_packages/raw/master/adb_linux"
+
+home=~
+mkdir -p "$home/.ngrok_server/"
+my_path="$home/.ngrok_server"
+cd $my_path
+
+function download_adb()
+{
+  if [[ "$linux" == "1" ]]; then
+    wget -O adb $adb_linux
+  elif [[ "$macos" == "1" ]]; then
+    wget -O adb $adb_darwin
+  else
+    wget -O adb $adb_windows
+  fi
+
+  adb_path="./adb"
+  chmod +x adb
+}
+
+if [[ -f "adb" ]]; then
+  echo "adb already downloaded file found"
+elif [[ ! $(which adb) ]]; then
+    echo "adb not found... attempting to download adb"
+    download_adb
+else
+  adb_path=$(which adb)
 fi
 
+function adb()
+{
+  $adb_path $@
+}
 
-if [[ ! $(which ngrok) ]]; then
-     echo "ngrok not found... download ngrok and include in PATH"
-     exit 1
+
+down_linux="https://github.com/madhavth/pip_packages/raw/master/ngrok_linux"
+down_windows="https://github.com/madhavth/pip_packages/raw/master/ngrok_windows.exe"
+down_darwin="https://github.com/madhavth/pip_packages/raw/master/ngrok_darwin"
+
+ngrok_path=""
+
+function download_ngrok()
+{
+  if [[ "$linux" == "1" ]]; then
+    wget -O ngrok $down_linux
+  elif [[ "$macos" == "1" ]]; then
+    wget -O ngrok $down_darwin
+  else
+    wget -O ngrok $down_windows
+  fi
+
+  ngrok_path="./ngrok"
+  chmod +x ngrok
+}
+
+if [[ -f "ngrok" ]]; then
+  echo "ngrok already downloaded file found"
+elif [[ ! $(which ngrok) ]]; then
+     echo "ngrok not found... attempting to download ngrok"
+     download_ngrok
+else
+  ngrok_path=$(which ngrok)
 fi
+
+function ngrok()
+{
+  $ngrok_path $@
+}
+
 
 function advl_get()
 {
