@@ -21,9 +21,10 @@ else:
 
 setup(
     name='ngrok_server',
-    scripts=['ngrok_server'],
+    scripts=['ngrok_server', 'get_ngrok_address.py'],
     version= version,
     description = 'simple project, simple life',
     long_description = long_descr,
-    author = 'madhavth'
+    author = 'madhavth',
+    install_requires= ['pyclip','requests']
 )

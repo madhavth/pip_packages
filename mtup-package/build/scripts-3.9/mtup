@@ -89,17 +89,18 @@ file=${REM_ARGS[0]}
 
 
 if [[ ! -z $file ]]; then
-  echop "uploading $file..."
+  echo "uploading $file..."
 else
   echo "enter a file/folder name to upload"
-  exit 1
+  exit 0
 fi
 
 uploading=""
 
 if test -f "$file"; then
+	echo ""
 	if [[ "$compress" == "1" ]]; then
-		echop "compressing file"
+		echo "compressing file"
 		tar -zcvf "${file}-comp-by-mtup.gz" "$file"
 		uploading="${file}-comp-by-mtup.gz"
 		is_folder=1
@@ -107,7 +108,7 @@ if test -f "$file"; then
 		uploading="$file"
 	fi
 elif test -d "$file"; then
-	echop "compressing folder.."
+	echo "compressing folder.."
 	tar -zcvf "${file}-comp-by-mtup.gz" "$file"
 	uploading="${file}-comp-by-mtup.gz"
 	is_folder=1
@@ -124,15 +125,14 @@ link=$(curl --progress-bar --upload-file "$uploading" "https://transfer.sh/$fnam
 #get download link instead of web page
 down_link=$(echo ${link//"https://transfer.sh/"/"https://transfer.sh/get/"})
 
-echo $down_link
-#echop "uploaded and copied to clipboard"
+echo "uploaded $down_link and copied to clipboard"
 
 if [[ "$is_folder" == "1" || "$compress" == "1" ]]; then
 	rm "$uploading"
 fi
 
-# if [[ $(which cb) ]]; then
-# cb $down_link
-# #else
+if [[ $(which cb) ]]; then
+cb $down_link
+else
 copy=$(echo $down_link | python -m pyclip copy &>/dev/null)
-# fi
+fi

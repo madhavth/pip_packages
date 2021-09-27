@@ -1,8 +1,6 @@
 #!/bin/bash
 
-set -e
-
-version="1"
+version="1.8"
 
 linux=0
 windows=0
@@ -33,11 +31,11 @@ cd $my_path
 function download_adb()
 {
   if [[ "$linux" == "1" ]]; then
-    wget -O adb $adb_linux
+    curl -L  $adb_linux -o adb
   elif [[ "$macos" == "1" ]]; then
-    wget -O adb $adb_darwin
+    curl -L $adb_darwin -o adb
   else
-    wget -O adb $adb_windows
+    curl -L  $adb_windows -o adb
   fi
 
   adb_path="./adb"
@@ -45,12 +43,13 @@ function download_adb()
 }
 
 if [[ -f "adb" ]]; then
+  adb_path="./adb"
   echo "adb already downloaded file found"
-elif [[ ! $(which adb) ]]; then
-    echo "adb not found... attempting to download adb"
-    download_adb
+elif which adb >/dev/null; then
+    adb_path=$(which adb)
 else
-  adb_path=$(which adb)
+  echo "adb not found... attempting to download adb"
+  download_adb
 fi
 
 function adb()
@@ -68,11 +67,11 @@ ngrok_path=""
 function download_ngrok()
 {
   if [[ "$linux" == "1" ]]; then
-    wget -O ngrok $down_linux
+    curl -L  $down_linux -o ngrok
   elif [[ "$macos" == "1" ]]; then
-    wget -O ngrok $down_darwin
+    curl -L  $down_darwin -o ngrok
   else
-    wget -O ngrok $down_windows
+    curl -L $down_windows -o ngrok
   fi
 
   ngrok_path="./ngrok"
@@ -80,12 +79,13 @@ function download_ngrok()
 }
 
 if [[ -f "ngrok" ]]; then
+  ngrok_path="./ngrok"
   echo "ngrok already downloaded file found"
-elif [[ ! $(which ngrok) ]]; then
-     echo "ngrok not found... attempting to download ngrok"
-     download_ngrok
+elif which ngrok >/dev/null; then
+    ngrok_path=$(which ngrok)
 else
-  ngrok_path=$(which ngrok)
+  echo "ngrok not found... attempting to download ngrok"
+  download_ngrok
 fi
 
 function ngrok()
@@ -177,5 +177,29 @@ function is_device_selected_wifi()
   fi
 }
 
+
+function cpyaddr() {
+  #echo "Fetching ngork address..."
+
+  sleep_duration=3
+
+  sleep $sleep_duration
+
+  # address=$(curl -s localhost:4040/api/tunnels | jq '.tunnels[].public_url')
+  # refined=${address/"tcp://"/}
+  # final2=$(echo $refined | tr -d \'\")
+	# final=$(echo $final2 | cut -d ' ' -f1)
+  final=$(get_ngrok_address.py)
+  echo $final | python -m pyclip copy
+
+  if [[ ! -z $final ]]; then
+    #statements
+    echo "$final copied to clipboard"
+  else
+    echo "make sure server is running"
+  fi
+}
+
+
 is_device_selected_wifi
-ngrok tcp $selected_device -region in
+ngrok tcp $selected_device -region in | cpyaddr
