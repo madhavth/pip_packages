@@ -2,7 +2,7 @@
 
 #MADHAVTH SHELL SCRIPT UPLOADER
 
-version="1.7"
+version="1.8"
 
 set -e
 
