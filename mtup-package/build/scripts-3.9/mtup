@@ -2,7 +2,7 @@
 
 #MADHAVTH SHELL SCRIPT UPLOADER
 
-version="1.8"
+version="1.9"
 
 set -e
 
@@ -33,6 +33,7 @@ Madhavth Uploader Script usage
 Options:
 -h, --help                 display this usage message and exit
 -c, --compress 			   compress file
+-f                   file name after upload
 -v, --version			   show version
 EOF
     exit 1
