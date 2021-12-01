@@ -1,10 +1,15 @@
 #!python
-version="0.1"
+version="0.2"
 import argparse
 import subprocess as sp
 import os
 import re
 from typing import List
+
+
+presentation_ui = os.path.join('presentation','ui')
+repo_data = os.path.join('data', 'repository')
+repo_domain= os.path.join('domain', 'repository')
 
 def exec(command:str):
     return sp.run(command.split(' '), capture_output=True)
@@ -27,6 +32,8 @@ def get_module_name(name: str):
 def mkdir(name:str):
     if not os.path.exists(name):
         os.makedirs(name)
+    else:
+        print(f'folder {name} already exists.. ignoring folder creation')
 
 
 def make_folders(list: List[str]):
@@ -45,30 +52,52 @@ def create_folders(name: str):
     check_if_exists(name)
     mkdir(name)
     os.chdir(name)
-    make_folders(['entities', 'models', 'widgets', 'cubits'])
+    make_folders(['domain/entities', 'data/models', 'presentation/widgets'
+                  , 'presentation/cubits',
+                    'presentation/ui',
+                    'domain/repository',
+                    'data/repository'
+                  ])
 
 def success_message(pre:str):
     print(f'{pre} created successfully!')
 
 
 def create_repository(snake_case, module_name, network_call:bool):
-    template_string = f"""import 'package:dio/dio.dart';
     
-    class {module_name}Repository {{ 
+    abstract_repo_string = f"""
+abstract class {module_name}Repository {{
         
-    }}
-    """ if not network_call else f"""import 'package:dio/dio.dart';
-    
-    class {module_name}Repository {{ 
-        Future<dynamic> fetchData() async {{
-            var response = await dio.get('dummy');
-            return response;
-        }}
-    }}
+}}
+    """ if not network_call else f"""
+abstract class {module_name}Repository {{
+    Future<dynamic> fetchData();
+}}
     """
     
+    template_string = f"""import 'package:dio/dio.dart';
+import '../../domain/repository/{snake_case}_repository.dart';
     
-    with open(f'{snake_case}_repository.dart', 'w') as f:
+class {module_name}RepositoryImpl extends {module_name}Repository {{ 
+        
+}}
+    """ if not network_call else f"""import 'package:dio/dio.dart';
+import '../../domain/repository/{snake_case}_repository.dart';
+    
+class {module_name}Repository extends {module_name}Repository {{ 
+    Future<dynamic> fetchData() async {{
+        var response = await dio.get('dummy');
+        return response;
+    }}
+}}
+    """
+    
+    with(open(os.path.join(f'domain', 'repository', f'{snake_case}_repository.dart'), 'w')) as f:
+        f.write(abstract_repo_string)
+        success_message('abstract repository class')
+    
+    
+    with open(os.path.join('data', 'repository', f'{snake_case}_repository_impl.dart'), 'w') as f:
         f.write(template_string)
         success_message('repository class')
 
@@ -88,49 +117,48 @@ class {module_name}Page extends StatelessWidget {{
     }}
 }}
 """
-    
-    with open(f'{snake_case}_view.dart', 'w') as f:
+    with open(os.path.join('presentation', 'ui', f'{snake_case}_view.dart'), 'w') as f:
         f.write(template_string)
         success_message('view')
 
 
 def create_cubit(snake_case, module_name, is_network_call:bool):
-    folder = os.path.join('cubits', snake_case)
+    folder = os.path.join('presentation', 'cubits', snake_case)
     camel_case = camel(snake_case)
     
     mkdir(folder)
     template_cubit = f"""import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-    part '{snake_case}_state.dart';
+part '{snake_case}_state.dart';
     
-    class {module_name}Cubit extends Cubit<{module_name}State> {{
+class {module_name}Cubit extends Cubit<{module_name}State> {{
         
-        {module_name}Cubit(): super({module_name}Initial());
-    }}
+    {module_name}Cubit(): super({module_name}Initial());
+}}
     """ if not is_network_call else f"""import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../{snake_case}_repository.dart';
 part '{snake_case}_state.dart';
     
-    class {module_name}Cubit extends Cubit<{module_name}State> {{
+class {module_name}Cubit extends Cubit<{module_name}State> {{
         
-        {module_name}Repository {camel_case}Repository = {module_name}Repository(); 
+    {module_name}Repository {camel_case}Repository = {module_name}Repository(); 
         
-        {module_name}Cubit(): super({module_name}Initial());
+    {module_name}Cubit(): super({module_name}Initial());
         
-        late var data;
+    late var data;
         
-        fetchData() async {{
-        try{{
-          emit({module_name}LoadingState());
-          data = await {camel_case}Repository.fetchData();
-          emit({module_name}LoadedState(data));  
-            }}
-        catch(e) {{
-            emit({module_name}ErrorState(e));
+    fetchData() async {{
+    try{{
+        emit({module_name}LoadingState());
+        data = await {camel_case}Repository.fetchData();
+        emit({module_name}LoadedState(data));  
         }}
-        }}
+    catch(e) {{
+        emit({module_name}ErrorState(e));
     }}
+    }}
+}}
     """
     
     with open(os.path.join(folder, f'{snake_case}_cubit.dart'), 'w') as f:
@@ -139,35 +167,35 @@ part '{snake_case}_state.dart';
     
     template_cubit_state = f"""part of '{snake_case}_cubit.dart';
     
-    abstract class {module_name}State extends Equatable {{
-        @override
-        List<Object> get props => [];
-    }}
+abstract class {module_name}State extends Equatable {{
+    @override
+    List<Object> get props => [];
+}}
     
-    class {module_name}Initial extends {module_name}State {{}}
+class {module_name}Initial extends {module_name}State {{}}
     
-    class {module_name}LoadingState extends {module_name}State {{}}
+class {module_name}LoadingState extends {module_name}State {{}}
     
-    class {module_name}LoadedState extends {module_name}State {{
-        final data;
+class {module_name}LoadedState extends {module_name}State {{
+    final data;
         
-        {module_name}LoadedState(this.data);
-    }}
+    {module_name}LoadedState(this.data);
+}}
     
-    class {module_name}ErrorState extends {module_name}State {{
-        final error;
+class {module_name}ErrorState extends {module_name}State {{
+    final error;
         
-        {module_name}ErrorState(this.error);
-    }}
+    {module_name}ErrorState(this.error);
+}}
     
     """ if is_network_call else f"""part of '{snake_case}_cubit.dart';
     
-    abstract class {module_name}State extends Equatable {{
-        @override
-        List<Object> get props => [];
-    }}
+abstract class {module_name}State extends Equatable {{
+    @override
+    List<Object> get props => [];
+}}
     
-    class {module_name}Initial extends {module_name}State {{}}
+class {module_name}Initial extends {module_name}State {{}}
     """
     
     with open(os.path.join(folder, f'{snake_case}_state.dart'), 'w') as f:
