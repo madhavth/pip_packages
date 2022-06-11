@@ -1,0 +1,32 @@
+#!/bin/bash
+
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+
+#powerlevel10k theme
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+
+
+#zsh autosuggestions
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+
+
+#zsh completions
+git clone https://github.com/clarketm/zsh-completions ${ZSH_CUSTOM:=~/.oh-my-zsh/custom}/plugins/zsh-completions
+
+#zsh-z
+git clone https://github.com/agkozak/zsh-z $ZSH_CUSTOM/plugins/zsh-z
+
+#zsh-syntax-highlighting
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+
+#k plugin
+git clone https://github.com/supercrabtree/k $ZSH_CUSTOM/plugins/k
+
+#copy and replace my zsh plugin then everything is fine
+curl -L https://raw.githubusercontent.com/madhavth/pip_packages/master/.zshrc-backup --output /tmp/.zshrc
+
+[[ -f ~/.zshrc ]] && cp ~/.zshrc ~/.zshrc.backup
+
+cp /tmp/.zshrc ~/.zshrc
+source ~/.zshrc
