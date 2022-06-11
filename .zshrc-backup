@@ -77,7 +77,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Add wisely, as too many plugins slow down shell startup.
 
 #auto-notify
-plugins=(git zsh-autosuggestions zsh-completions zsh-z zsh-syntax-highlighting history-substring-search extract k)
+plugins=(git zsh-autosuggestions zsh-completions zsh-z zsh-syntax-highlighting history-substring-search extract k fzf)
 autoload -U compinit && compinit
 
 #antigen bundle zsh-users/zsh-autosuggestions
@@ -118,13 +118,6 @@ source $ZSH/oh-my-zsh.sh
 POWERLEVEL9K_MODE='nerdfont-complete'
 ZSH_DISABLE_COMPFIX=false
 
-for file in /mnt/win/alias/*; do
-  if [[ -f $file ]]; then
-    source "$file"
-  fi
-done
-
-
 #eval $(thefuck --alias)
 
 AUTO_NOTIFY_IGNORE+=("sleep" "batcat" "git" "du")
@@ -149,21 +142,3 @@ function cl()
 	cd "$@" && ls
 }
 
-export ssr="http://localhost:8050/render.html"
-alias srcconda="source /home/madhavth/.conda_config"
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-#__conda_setup="$('/home/madhavth/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-#if [ $? -eq 0 ]; then
-#    eval "$__conda_setup"
-#else
-#    if [ -f "/home/madhavth/miniconda3/etc/profile.d/conda.sh" ]; then
-#        . "/home/madhavth/miniconda3/etc/profile.d/conda.sh"
-#    else
-#        export PATH="/home/madhavth/miniconda3/bin:$PATH"
-#    fi
-#fi
-#unset __conda_setup
-# <<< conda initialize <<<
-export PATH="$PATH:/mnt/sdb2/depot_tools"
-export CHROMIUM_ANDROID="/mnt/sdb3/Chromium/src"
