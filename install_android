@@ -1,0 +1,45 @@
+#!/bin/bash
+
+version="0.1"
+
+install_flutter() {
+sudo apt-get install -y git curl
+cd ~
+git clone https://github.com/flutter/flutter.git
+echo export PATH=\"\$PATH:$HOME/flutter/bin\" >> ~/.zshrc
+source ~/.zshrc
+flutter precache
+flutter doctor
+}
+
+install_android_sdk() {
+bash -lc "sudo apt-get install android-sdk-*"
+cd /usr/lib/android-sdk
+sudo chown -R $USER:$USER .
+
+cd ~
+
+curl -L --output commandline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
+
+
+sudo unzip commandline-tools.zip
+sudo mkdir -p /usr/lib/android-sdk/cmdline-tools/latest
+sudo mv cmdline-tools/* /usr/lib/android-sdk/cmdline-tools/latest
+
+echo export PATH=\"\$PATH:/usr/lib/android-sdk/cmdline-tools/latest/bin\" >> ~/.zshrc
+
+source ~/.zshrc
+
+#sdkmanager install platforms tools 29, build tool 30
+sdkmanager "platforms;android-29" "tools;29.0.3" "build-tools;29.0.3"
+}
+
+
+if [[ ! $(which flutter) ]]; then
+install_flutter
+fi
+
+
+if [[ ! -d /usr/lib/android-sdk ]]; then
+    install_android_sdk
+fi
