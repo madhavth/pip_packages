@@ -26,6 +26,8 @@ git clone https://github.com/supercrabtree/k $ZSH_CUSTOM/plugins/k
 #copy and replace my zsh plugin then everything is fine
 curl -L https://raw.githubusercontent.com/madhavth/pip_packages/master/.zshrc-backup --output /tmp/.zshrc
 
+sudo apt-get install fzf
+
 [[ -f ~/.zshrc ]] && cp ~/.zshrc ~/.zshrc.backup
 
 cp /tmp/.zshrc ~/.zshrc
