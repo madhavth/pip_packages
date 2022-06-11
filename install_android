@@ -13,7 +13,7 @@ flutter doctor
 }
 
 install_android_sdk() {
-sudo apt-get -y install android-sdk-*
+sudo bash -lc "sudo apt-get -y install android-sdk-*"
 cd /usr/lib/android-sdk
 sudo chown -R $USER:$USER .
 
