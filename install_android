@@ -2,12 +2,13 @@
 
 version="0.1"
 
+alias flutter="$HOME/flutter/bin/flutter"
+
 install_flutter() {
 sudo apt-get install -y git curl
 cd ~
 git clone https://github.com/flutter/flutter.git
 echo export PATH=\"\$PATH:$HOME/flutter/bin\" >> ~/.zshrc
-source ~/.zshrc
 flutter precache
 flutter doctor
 }
@@ -28,10 +29,11 @@ sudo mv cmdline-tools/* /usr/lib/android-sdk/cmdline-tools/latest
 
 echo export PATH=\"\$PATH:/usr/lib/android-sdk/cmdline-tools/latest/bin\" >> ~/.zshrc
 
-source ~/.zshrc
+alias sdkmanager="/usr/lib/android-sdk/cmdline-tools/latest/bin/sdkmanager"
 
 #sdkmanager install platforms tools 29, build tool 30
-sdkmanager "platforms;android-29" "tools;29.0.3" "build-tools;29.0.3"
+sdkmanager "platform-tools" "platforms;android-29"
+sdkmanager "platforms;android-29" "build-tools;29.0.2"
 }
 
 
