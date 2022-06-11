@@ -10,7 +10,7 @@ cd ~
 git clone https://github.com/flutter/flutter.git
 echo export PATH=\"\$PATH:$HOME/flutter/bin\" >> ~/.zshrc
 flutter precache
-flutter doctor
+yes | flutter doctor --android-licenses
 }
 
 install_android_sdk() {
@@ -34,6 +34,7 @@ alias sdkmanager="/usr/lib/android-sdk/cmdline-tools/latest/bin/sdkmanager"
 #sdkmanager install platforms tools 29, build tool 30
 sdkmanager "platform-tools" "platforms;android-29"
 sdkmanager "platforms;android-29" "build-tools;29.0.2"
+yes | flutter doctor --android-licenses
 }
 
 
